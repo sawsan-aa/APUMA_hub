@@ -1,0 +1,20 @@
+{
+  "name": "APU Muslim Association",
+  "short_name": "APUMA",
+  "description": "Islamic reminders & insights, a gamified Seerah academy, and a home for every Muslim student at APU.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFDF9",
+  "theme_color": "#065F46",
+  "categories": ["education", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

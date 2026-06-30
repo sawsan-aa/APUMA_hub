@@ -1,288 +1,207 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  Calendar, 
-  MapPin, 
-  Users, 
-  FileText, 
-  BookOpen, 
-  MessageSquare,
-  Instagram,
-  Heart
-} from 'lucide-react';
 
-const isEmoji = (str: string) => {
-  if (!str) return false;
-  return str.length <= 4 && !str.includes('/') && !str.includes('.');
-};
+const isEmoji = (str: string) => !!str && str.length <= 4 && !str.includes('/') && !str.includes('.');
+
+const POSTER_BGS = [
+  'linear-gradient(160deg,#059669,#047857)',
+  'linear-gradient(160deg,#D97706,#B45309)',
+  'linear-gradient(160deg,#0D9488,#0F766E)',
+  'linear-gradient(160deg,#10B981,#059669)',
+];
+const LEADER_BGS = [
+  'linear-gradient(135deg,#A7F3D0,#34D399)',
+  'linear-gradient(135deg,#FDE68A,#FBBF24)',
+  'linear-gradient(135deg,#BAE6FD,#38BDF8)',
+];
+
+const SectionHead: React.FC<{ title: string; to?: string; cta?: string }> = ({ title, to, cta }) => (
+  <div className="flex items-baseline justify-between">
+    <h2 className="text-2xl sm:text-[26px] font-extrabold text-emerald-800">{title}</h2>
+    {to && (
+      <Link to={to} className="text-sm font-extrabold text-emerald-600 hover:text-emerald-700 transition">
+        {cta || 'See all'} →
+      </Link>
+    )}
+  </div>
+);
 
 export const Dashboard: React.FC = () => {
-  const { posts, members, systemConfig } = useApp();
+  const { posts, members, courses, progress, setActiveCourse } = useApp();
+  const navigate = useNavigate();
 
-  // Filter posts to show only events / announcements or normal articles
-  const latestEvents = posts.filter(p => p.category === 'event').slice(0, 2);
-  const latestArticles = posts.filter(p => p.category === 'post').slice(0, 3);
+  const latestPosts = posts.slice(0, 3);
+  const events = posts.filter(p => p.category === 'event').slice(0, 4);
+  const leaders = members.filter(m => m.category === 'executive').slice(0, 3);
 
-  // Top 3 leaders
-  const topLeaders = members.slice(0, 3);
+  const openCourse = (id: string) => { setActiveCourse(id); navigate('/academy'); window.scrollTo(0, 0); };
 
   return (
-    <div className="space-y-16">
-      
-      {/* 1. VISUAL MINI-HERO WELCOME BANNERS */}
-      <section className="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white rounded-3xl overflow-hidden shadow-xl border border-emerald-700 relative">
-        {/* Background Subtle Elements */}
-        <div className="absolute top-0 right-0 p-32 bg-amber-400 rounded-full blur-3xl opacity-15 translate-x-12 -translate-y-12"></div>
-        <div className="absolute bottom-0 left-0 p-24 bg-mint-400 rounded-full blur-3xl opacity-10 -translate-x-12 translate-y-12"></div>
+    <div className="py-8 space-y-11 animate-pop">
 
-        <div className="max-w-4xl mx-auto px-6 py-16 md:py-20 text-center relative z-10 space-y-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-700/60 text-amber-300 text-[10px] font-bold uppercase tracking-widest border border-emerald-600/50">
-            <Sparkles size={11} className="animate-pulse" />
-            Empowering Muslim Students Since 2012
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-[10px] bg-linear-to-br from-emerald-800 via-emerald-600 to-emerald-500 px-8 sm:px-11 py-12 sm:py-14">
+        <div className="absolute -top-8 right-10 w-32 h-32 rounded-full bg-emerald-200/25 animate-floaty" />
+        <div className="absolute -bottom-10 right-40 w-20 h-20 rounded-3xl bg-amber-500/35 animate-floaty-slow" />
+        <div className="relative max-w-xl">
+          <span className="inline-block bg-white/20 text-emerald-50 font-extrabold text-xs px-3.5 py-1.5 rounded-full tracking-wide">
+            ★ APU MUSLIM ASSOCIATION
           </span>
-
-          <h1 className="text-3xl md:text-5xl font-extrabold font-sans tracking-tight leading-tight">
-            Learn, Grow & Belong with <span className="text-amber-400">APUMA</span>
+          <h1 className="text-white text-4xl sm:text-5xl font-extrabold leading-tight mt-4">
+            Where the <span className="text-amber-400">Muslim Community</span> of APU <span className="text-amber-400">lives</span>
           </h1>
-
-          <p className="text-emerald-100 text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-sans">
-            Welcome to the Muslim Association of Asia Pacific University (APUMA). Explore our gamified Duolingo-style Seerah academy, browse visual campus guidelines, and connect with a vibrant global student community!
+          <p className="text-emerald-50/90 text-base sm:text-[17px] font-semibold mt-3.5 leading-relaxed">
+            Islamic reminders &amp; insights, a gamified Seerah academy, and a home for every Muslim student at APU.
           </p>
-
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 mt-6">
             <Link
-              id="btn-hero-academy"
-              to="/academy"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-amber-400 text-emerald-950 font-extrabold text-sm hover:bg-amber-300 transition-all shadow-md flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
+              id="btn-hero-courses"
+              to="/courses"
+              className="btn-pop bg-amber-500 text-white text-[15px] px-6 py-3.5 shadow-[0_6px_0_0_#d97706] hover:bg-amber-400"
             >
-              <BookOpen size={16} />
-              Start Seerah Course (Duolingo Style)
+              Start the journey →
             </Link>
-
             <Link
               id="btn-hero-join"
               to="/join"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-emerald-900/60 text-white border border-emerald-700/80 font-bold text-sm hover:bg-emerald-800/80 transition-all flex items-center justify-center gap-2"
+              className="btn-pop bg-white/95 text-emerald-800 text-[15px] px-6 py-3.5 hover:bg-white"
             >
-              <Users size={16} />
-              Become a Member
+              Join the community
             </Link>
           </div>
+          <p className="text-emerald-50/80 text-sm font-semibold mt-6 leading-relaxed">
+            <span className="font-display text-amber-300 text-lg">اهدِنَا الصِّرَاطَ المُستَقِيمَ</span>
+            <span className="block mt-0.5">“Guide us to the Straight Path.” — Qur’an 1:5</span>
+          </p>
         </div>
       </section>
 
-      {/* 2. LATEST POSTS & GRAPHICS GRID SECTION */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-gray-100 pb-4">
-          <div>
-            <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider font-mono block">
-              Knowledge Sharing
-            </span>
-            <h2 className="text-2xl font-bold font-sans text-gray-950">
-              Latest Infographics & Posts
-            </h2>
-          </div>
 
-          <Link
-            id="btn-see-all-posts"
-            to="/feed"
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 group"
-          >
-            See All Posts
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-
-        {/* Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {latestArticles.length === 0 ? (
-            <div className="md:col-span-3 text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <p className="text-xs text-gray-500">No approved articles found on the feed yet.</p>
+      {/* LATEST POSTS */}
+      <section>
+        <SectionHead title="Latest Posts" to="/feed" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[18px] mt-[18px]">
+          {latestPosts.length === 0 ? (
+            <div className="md:col-span-3 text-center py-12 bg-emerald-50/60 rounded-3xl border border-dashed border-emerald-200 text-sm font-semibold text-emerald-700/60">
+              No posts published yet.
             </div>
-          ) : (
-            latestArticles.map((article) => (
-              <article 
-                key={article.id}
-                className="bg-white rounded-3xl border border-emerald-100/60 overflow-hidden shadow-xl shadow-emerald-950/5 flex flex-col justify-between hover:shadow-md hover:border-emerald-200 transition duration-300"
-              >
-                <div>
-                  <div className="aspect-video relative bg-slate-100">
-                    <img 
-                      src={article.images[0]} 
-                      alt={article.title} 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                      📖 Infographic
-                    </span>
-                  </div>
-
-                  <div className="p-6 space-y-3">
-                    <span className="text-[10px] font-mono font-bold text-gray-400">
-                      Published: {article.date}
-                    </span>
-                    <h3 className="font-bold text-base text-gray-900 line-clamp-2 hover:text-emerald-800 transition">
-                      {article.title}
-                    </h3>
-                    <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed">
-                      {article.content}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-6 pt-0 border-t border-slate-50 mt-4 flex items-center justify-between text-xs text-slate-500">
-                  <span className="font-medium">By: {article.author}</span>
-                  <Link 
-                    id={`btn-read-post-${article.id}`}
-                    to="/feed" 
-                    className="text-emerald-700 font-bold hover:underline"
-                  >
-                    Read Slide Script →
-                  </Link>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-      </section>
-
-      {/* 3. LATEST POSTERS & EVENTS TIMELINE */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-gray-100 pb-4">
-          <div>
-            <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider font-mono block">
-              Join Active Life
-            </span>
-            <h2 className="text-2xl font-bold font-sans text-gray-950">
-              Upcoming Events & Assemblies
-            </h2>
-          </div>
-
-          <Link
-            id="btn-see-all-events"
-            to="/feed"
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 group"
-          >
-            See All Events
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-
-        {/* Events Grid split into layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {latestEvents.length === 0 ? (
-            <div className="md:col-span-2 text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <p className="text-xs text-gray-500">No events scheduled. Check back later, sister/brother!</p>
-            </div>
-          ) : (
-            latestEvents.map((event) => (
-              <div 
-                key={event.id}
-                className="bg-amber-50/20 border border-amber-100/50 rounded-3xl p-6 flex flex-col sm:flex-row gap-6 items-center shadow-xl shadow-amber-950/2 hover:shadow-md hover:border-amber-200 transition duration-300"
-              >
-                <div className="w-full sm:w-40 h-40 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-amber-100">
-                  <img 
-                    src={event.images[0]} 
-                    alt={event.title} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="space-y-4 flex-1">
-                  <div>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-400 text-emerald-950 text-[9px] font-extrabold uppercase tracking-wide">
-                      ⚡ UPCOMING EVENT
-                    </span>
-                    <h3 className="font-extrabold text-lg text-gray-900 mt-2 font-sans tracking-tight">
-                      {event.title}
-                    </h3>
-                  </div>
-
-                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                    {event.content}
-                  </p>
-
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-medium text-slate-500 border-t border-amber-100/60 pt-3">
-                    <span className="flex items-center gap-1 text-emerald-800 font-semibold">
-                      <Calendar size={12} />
-                      Shared: {event.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={12} />
-                      APU Campus
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      {/* 4. WHO'S BEHIND APUMA? EXECUTIVE SPOTLIGHT */}
-      <section className="bg-white rounded-3xl border border-emerald-100/60 p-8 shadow-xl shadow-emerald-950/5 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-gray-50 pb-5">
-          <div>
-            <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider font-mono block">
-              Meet our Leadership
-            </span>
-            <h2 className="text-2xl font-bold font-sans text-gray-950">
-              Who’s Behind APUMA?
-            </h2>
-            <p className="text-xs text-gray-500 mt-1">Get to know the executive team dedicated to serving the APU Muslim student body.</p>
-          </div>
-
-          <Link
-            id="btn-see-all-members"
-            to="/team"
-            className="px-5 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 border border-emerald-100 transition flex items-center gap-1"
-          >
-            See All Members
-            <ArrowRight size={13} />
-          </Link>
-        </div>
-
-        {/* Leaders cards layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {topLeaders.map((leader) => (
-            <div 
-              key={leader.id}
-              className="flex flex-col items-center text-center p-6 bg-slate-50/50 rounded-3xl border border-slate-100/80 hover:shadow transition duration-300"
+          ) : latestPosts.map((p) => (
+            <Link
+              key={p.id}
+              to="/feed"
+              className="card-lift bg-white rounded-3xl border border-emerald-50 overflow-hidden shadow-[0_8px_26px_-16px_rgba(5,150,105,0.4)]"
             >
-              {isEmoji(leader.avatar) ? (
-                <div className="w-24 h-24 rounded-3xl bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-4xl shadow-md mb-4 select-none">
-                  {leader.avatar}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-emerald-500 mb-4 bg-slate-100 shadow-md">
-                  <img 
-                    src={leader.avatar} 
-                    alt={leader.name} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <h3 className="font-extrabold font-sans text-sm text-gray-900">{leader.name}</h3>
-                <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full border border-emerald-200">
-                  {leader.roleName}
-                </span>
-                <p className="text-xs text-gray-600 leading-relaxed pt-2 line-clamp-3">
-                  {leader.bio}
-                </p>
+              <div className="h-[130px] bg-emerald-100 overflow-hidden">
+                <img src={p.images[0]} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
-            </div>
+              <div className="p-[18px]">
+                <span className="text-[11px] font-extrabold text-amber-500 uppercase tracking-wide">{p.category}</span>
+                <h3 className="text-[18px] font-bold text-emerald-900 mt-1 leading-tight line-clamp-2">{p.title}</h3>
+                <p className="text-[13px] font-semibold text-emerald-700/60 mt-1.5 leading-snug line-clamp-2">{p.content}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
+      {/* FEATURED COURSES */}
+      <section>
+        <SectionHead title="Featured Courses" to="/courses" cta="See all courses" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px] mt-[18px]">
+          {courses.map((c) => {
+            const all = c.modules.flatMap(m => m.sessions);
+            const total = all.length;
+            const done = all.filter(s => progress.completedSessionIds.includes(s.id)).length;
+            const pct = total ? Math.round((done / total) * 100) : 0;
+            return (
+              <button
+                key={c.id}
+                id={`btn-dash-course-${c.id}`}
+                onClick={() => openCourse(c.id)}
+                className="card-lift text-left bg-white rounded-[22px] overflow-hidden border border-emerald-50 shadow-[0_8px_26px_-18px_rgba(5,150,105,0.5)] flex flex-col cursor-pointer"
+              >
+                <div className="h-20 flex items-center justify-between px-4" style={{ background: `linear-gradient(135deg, ${c.accent}, ${c.accent}cc)` }}>
+                  <span className="text-[40px] leading-none">{c.emoji}</span>
+                  <span className="bg-white/25 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-full">{total} lessons</span>
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <h3 className="text-[16px] font-extrabold text-emerald-900 leading-tight">{c.title}</h3>
+                  <p className="text-[12px] font-semibold text-emerald-700/60 mt-1 leading-snug line-clamp-2 flex-1">{c.subtitle}</p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="flex-1 h-2 bg-emerald-50 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: c.accent }} />
+                    </div>
+                    <span className="text-[11px] font-extrabold" style={{ color: c.accent }}>{pct}%</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 mt-3 self-start text-white font-extrabold text-[13px] px-3.5 py-2 rounded-xl" style={{ background: c.accent }}>
+                    {done > 0 ? 'Continue' : 'Start'} →
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* LATEST POSTERS & EVENTS */}
+      <section>
+        <SectionHead title="Latest Posters & Events" to="/feed" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px] mt-[18px]">
+          {events.length === 0 ? (
+            <div className="col-span-2 md:col-span-4 text-center py-12 bg-emerald-50/60 rounded-3xl border border-dashed border-emerald-200 text-sm font-semibold text-emerald-700/60">
+              No events scheduled — check back soon!
+            </div>
+          ) : events.map((e, i) => (
+            <Link
+              key={e.id}
+              to="/feed"
+              className="card-lift relative rounded-[22px] overflow-hidden aspect-4/5 flex flex-col justify-end p-4 shadow-[0_10px_28px_-14px_rgba(5,150,105,0.45)]"
+              style={{ background: POSTER_BGS[i % POSTER_BGS.length] }}
+            >
+              {e.images[0] && (
+                <img src={e.images[0]} alt={e.title} referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover opacity-55" />
+              )}
+              <div className="absolute inset-0 bg-linear-to-t from-black/55 to-transparent" />
+              <span className="absolute top-3.5 right-3.5 bg-white/90 text-emerald-800 font-extrabold text-[11px] px-2.5 py-1 rounded-full">
+                {e.date.slice(5)}
+              </span>
+              <h3 className="relative text-white text-[17px] font-bold leading-tight">{e.title}</h3>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* WHO'S BEHIND APUMA */}
+      <section className="bg-linear-to-br from-emerald-50 to-cream border border-emerald-100 rounded-[32px] px-8 sm:px-10 py-9">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-2xl sm:text-[26px] font-extrabold text-emerald-800">Who’s Behind APUMA? 🌱</h2>
+          <Link to="/team" className="text-sm font-extrabold text-emerald-600 hover:text-emerald-700 transition">See all members →</Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+          {leaders.map((L, i) => (
+            <div key={L.id} className="bg-white rounded-[26px] p-6 text-center border border-emerald-50 shadow-[0_8px_26px_-18px_rgba(5,150,105,0.5)]">
+              {isEmoji(L.avatar) ? (
+                <div
+                  className="w-[84px] h-[84px] mx-auto rounded-full flex items-center justify-center text-[38px] shadow-md"
+                  style={{ background: LEADER_BGS[i % LEADER_BGS.length] }}
+                >
+                  {L.avatar}
+                </div>
+              ) : (
+                <div className="w-[84px] h-[84px] mx-auto rounded-full overflow-hidden shadow-md bg-emerald-100">
+                  <img src={L.avatar} alt={L.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="mt-3.5 inline-block bg-amber-100 text-amber-700 font-extrabold text-[11px] px-3 py-1 rounded-full tracking-wide">
+                {L.roleName}
+              </div>
+              <h3 className="text-[19px] font-bold text-emerald-900 mt-2">{L.name}</h3>
+              <p className="text-[13px] font-semibold text-emerald-700/60 mt-1.5 leading-snug">{L.bio}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

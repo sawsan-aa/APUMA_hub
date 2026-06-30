@@ -1,1 +1,206 @@
 @import "tailwindcss";
+
+/* Class-based dark mode: `dark:` utilities (and our overrides) apply when
+   <html class="dark"> is set. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===================================================================
+   APUMA Design System — "Learn the Seerah, the fun way"
+   Playful, Duolingo-style: rounded Baloo 2 display, cream canvas,
+   3D press buttons, bouncy micro-animations.
+   =================================================================== */
+@theme {
+  --font-display: "Baloo 2", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand canvas */
+  --color-cream: #fffdf9;
+
+  /* Playful motion */
+  --animate-pop: apuma-pop 0.3s ease;
+  --animate-bounce-soft: apuma-bounce 1.5s ease-in-out infinite;
+  --animate-ping-soft: apuma-ping 1.4s ease-in-out infinite;
+  --animate-floaty: apuma-floaty 6s ease-in-out infinite;
+  --animate-floaty-slow: apuma-floaty 5s ease-in-out infinite;
+  --animate-slide-up: apuma-slide-up 0.25s ease;
+}
+
+@keyframes apuma-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes apuma-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes apuma-ping {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  70%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes apuma-floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+@keyframes apuma-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--color-cream);
+    font-family: var(--font-sans);
+    color: #064e3b;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Headings lean on the rounded display face for the playful feel */
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  /* 3D "press" button — pair with a darker bg-shadow via arbitrary shadow.
+     e.g. <button class="btn-pop bg-amber-500 shadow-[0_5px_0_0_#d97706]"> */
+  .btn-pop {
+    @apply font-extrabold rounded-2xl transition-all duration-150 active:translate-y-[3px] active:shadow-none;
+  }
+  /* Soft lift on cards */
+  .card-lift {
+    @apply transition-transform duration-150 hover:-translate-y-1;
+  }
+}
+
+/* Thin, friendly scrollbars inside scroll regions */
+.apuma-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+.apuma-scroll::-webkit-scrollbar-thumb { background: #a7f3d0; border-radius: 99px; }
+
+/* ===================================================================
+   DARK MODE
+   Centralised theme: remaps the neutral surfaces / text / borders used
+   across the app. Brand accents (emerald & amber buttons, vivid gradients,
+   white text on colour) are deliberately left untouched. Exact-class
+   selectors mean state utilities (hover:, etc.) keep their semantics.
+   =================================================================== */
+.dark {
+  color-scheme: dark;
+  --d-bg: #07120f;          /* app canvas (cream → near-black green) */
+  --d-surface: #0f1c18;     /* cards (white →) — slightly above the canvas */
+  --d-surface-2: #15241f;   /* tinted surfaces (emerald-50/100, gray-100 →) */
+  --d-border: #294035;      /* light borders → (kept visible for definition) */
+  --d-text: #edf6f2;        /* strong text (emerald-800/900/950 →) */
+  --d-text-2: #bdd4ca;      /* medium text (emerald-700 →) */
+  --d-text-3: #8aa89c;      /* muted text (emerald-700/xx, gray →) */
+  --d-accent: #6ee7b7;      /* emerald link text → */
+  --d-amber-soft: #2f2410;  /* amber-50/100 chips → */
+  --d-amber-text: #fcd34d;  /* amber-700 text → */
+}
+
+.dark body { background: var(--d-bg); color: var(--d-text); }
+
+/* ---- surfaces ---- */
+.dark .bg-white { background-color: var(--d-surface) !important; }
+.dark .bg-cream { background-color: var(--d-bg) !important; }
+.dark .bg-cream\/85 { background-color: rgba(11, 23, 20, 0.85) !important; }
+.dark .bg-cream\/90 { background-color: rgba(11, 23, 20, 0.9) !important; }
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/40,
+.dark .bg-emerald-50\/50,
+.dark .bg-emerald-50\/60,
+.dark .bg-emerald-100 { background-color: var(--d-surface-2) !important; }
+.dark .bg-gray-100,
+.dark .bg-gray-200 { background-color: var(--d-surface-2) !important; }
+.dark .bg-amber-50,
+.dark .bg-amber-50\/60,
+.dark .bg-amber-100 { background-color: var(--d-amber-soft) !important; }
+.dark .bg-green-50,
+.dark .bg-green-100 { background-color: #12281a !important; }
+.dark .bg-rose-50,
+.dark .bg-rose-100 { background-color: #2a1517 !important; }
+.dark .bg-orange-100 { background-color: #33240e !important; }
+
+/* gradient stops for light section backgrounds */
+.dark .from-emerald-50 { --tw-gradient-from: var(--d-surface-2) !important; }
+.dark .to-cream { --tw-gradient-to: var(--d-bg) !important; }
+.dark .from-pink-50\/60 { --tw-gradient-from: #241620 !important; }
+
+/* darken the vivid brand emerald banners (hero, CTA cards, modal headers,
+   brand tiles) so they read as deep emerald instead of bright green */
+.dark .from-emerald-900 { --tw-gradient-from: #021c17 !important; }
+.dark .from-emerald-800 { --tw-gradient-from: #04261d !important; }
+.dark .from-emerald-600 { --tw-gradient-from: #06382b !important; }
+.dark .via-emerald-600  { --tw-gradient-via:  #06382b !important; }
+.dark .to-emerald-800   { --tw-gradient-to:   #053024 !important; }
+.dark .to-emerald-600   { --tw-gradient-to:   #06382b !important; }
+.dark .to-emerald-500   { --tw-gradient-to:   #064e3b !important; }
+
+/* High-opacity white chips/badges/buttons (over images or the hero) act as
+   solid LIGHT surfaces with dark text. In dark mode their text is lightened,
+   so the surface must darken too — otherwise it's light-on-light. These exact
+   opacities are only used for that pattern, so darkening them is safe.
+   (Low-opacity white overlays /10–/30 stay as subtle glass on colour.) */
+.dark .bg-white\/95 { background-color: rgba(15, 28, 24, 0.97) !important; }
+.dark .bg-white\/90 { background-color: rgba(15, 28, 24, 0.9) !important; }
+
+/* ---- text ---- */
+.dark .text-emerald-950,
+.dark .text-emerald-900,
+.dark .text-emerald-800,
+.dark .text-emerald-800\/80 { color: var(--d-text) !important; }
+.dark .text-emerald-700,
+.dark .text-emerald-700\/70 { color: var(--d-text-2) !important; }
+.dark .text-emerald-700\/65,
+.dark .text-emerald-700\/60,
+.dark .text-emerald-700\/55,
+.dark .text-emerald-700\/50,
+.dark .text-emerald-700\/45 { color: var(--d-text-3) !important; }
+.dark .text-emerald-600,
+.dark .text-emerald-500,
+.dark .text-emerald-400 { color: var(--d-accent) !important; }
+.dark .text-gray-400,
+.dark .text-gray-500,
+.dark .text-gray-600 { color: var(--d-text-3) !important; }
+.dark .text-amber-700,
+.dark .text-amber-700\/70,
+.dark .text-amber-600 { color: var(--d-amber-text) !important; }
+.dark .text-green-700,
+.dark .text-green-600 { color: #86efac !important; }
+.dark .text-orange-700,
+.dark .text-orange-500 { color: var(--d-amber-text) !important; }
+.dark .text-rose-700,
+.dark .text-rose-600,
+.dark .text-rose-500 { color: #fb7185 !important; }
+
+/* ---- borders ---- */
+.dark .border-emerald-50,
+.dark .border-emerald-100,
+.dark .border-emerald-200,
+.dark .border-gray-200 { border-color: var(--d-border) !important; }
+.dark .border-amber-100,
+.dark .border-amber-200,
+.dark .border-amber-300 { border-color: #3a2c10 !important; }
+.dark .border-rose-100 { border-color: #3a1c1f !important; }
+.dark .border-pink-100 { border-color: #3a1f2c !important; }
+.dark .border-green-200 { border-color: #1e3a26 !important; }
+
+/* ---- hover states landing on dark surfaces ---- */
+.dark .hover\:bg-emerald-50:hover,
+.dark .hover\:bg-emerald-100:hover { background-color: var(--d-surface-2) !important; }
+.dark .hover\:bg-gray-200:hover { background-color: #2a3a33 !important; }
+.dark .hover\:bg-rose-50:hover { background-color: #2a1517 !important; }
+.dark .hover\:bg-amber-100:hover { background-color: var(--d-amber-soft) !important; }
+.dark .hover\:bg-white:hover,
+.dark .hover\:bg-emerald-50\/50:hover { background-color: var(--d-surface) !important; }
+.dark .focus\:bg-white:focus { background-color: var(--d-surface) !important; }
+
+/* ---- form fields ---- */
+.dark .placeholder\:text-emerald-700\/40::placeholder { color: #5f7a6f !important; }
+.dark select option { background: var(--d-surface); color: var(--d-text); }

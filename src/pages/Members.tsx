@@ -1,186 +1,121 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Instagram, Linkedin, Mail, Sparkles } from 'lucide-react';
+import { TeamMember, TeamGender, TeamUnit } from '../types';
+import { Instagram, Linkedin, Mail } from 'lucide-react';
 
-const isEmoji = (str: string) => {
-  if (!str) return false;
-  return str.length <= 4 && !str.includes('/') && !str.includes('.');
-};
+const isEmoji = (str: string) => !!str && str.length <= 4 && !str.includes('/') && !str.includes('.');
+
+const AVATAR_BGS = [
+  'linear-gradient(135deg,#A7F3D0,#34D399)',
+  'linear-gradient(135deg,#FDE68A,#FBBF24)',
+  'linear-gradient(135deg,#BAE6FD,#38BDF8)',
+  'linear-gradient(135deg,#DDD6FE,#A78BFA)',
+  'linear-gradient(135deg,#FBCFE8,#F472B6)',
+];
+
+const MemberCard: React.FC<{ m: TeamMember; i: number }> = ({ m, i }) => (
+  <div className="bg-white rounded-[26px] p-6 text-center border border-emerald-50 shadow-[0_8px_26px_-18px_rgba(5,150,105,0.5)] card-lift">
+    {isEmoji(m.avatar) ? (
+      <div className="w-[84px] h-[84px] mx-auto rounded-full flex items-center justify-center text-[38px] shadow-md" style={{ background: AVATAR_BGS[i % AVATAR_BGS.length] }}>
+        {m.avatar}
+      </div>
+    ) : (
+      <div className="w-[84px] h-[84px] mx-auto rounded-full overflow-hidden shadow-md bg-emerald-100">
+        <img src={m.avatar} alt={m.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+      </div>
+    )}
+    <div className="mt-3.5 inline-block bg-amber-100 text-amber-700 font-extrabold text-[11px] px-3 py-1 rounded-full tracking-wide">{m.roleName}</div>
+    <h3 className="text-[18px] font-bold text-emerald-900 mt-2">{m.name}</h3>
+    <p className="text-[13px] font-semibold text-emerald-700/60 mt-1.5 leading-snug">{m.bio}</p>
+    <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-emerald-50">
+      {m.instagram && (
+        <a href={m.instagram} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition"><Instagram size={15} /></a>
+      )}
+      {m.linkedin && (
+        <a href={m.linkedin} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition"><Linkedin size={15} /></a>
+      )}
+      <a href="mailto:apuma@apu.edu.my" className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition"><Mail size={15} /></a>
+    </div>
+  </div>
+);
+
+// One sub-team (e.g. Social Media) within a gender section.
+const SubTeam: React.FC<{ title: string; emoji: string; members: TeamMember[]; offset: number }> = ({ title, emoji, members, offset }) => (
+  <div>
+    <h3 className="text-sm font-extrabold text-emerald-700/70 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+      <span>{emoji}</span> {title}
+    </h3>
+    {members.length === 0 ? (
+      <div className="text-[13px] font-semibold text-emerald-700/45 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-2xl py-6 text-center">
+        Positions open — join us!
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {members.map((m, i) => <MemberCard key={m.id} m={m} i={offset + i} />)}
+      </div>
+    )}
+  </div>
+);
 
 export const Members: React.FC = () => {
   const { members } = useApp();
 
-  // Categorize members
   const executives = members.filter(m => m.category === 'executive');
-  const workingCommittee = members.filter(m => m.category === 'team');
+  const team = (g: TeamGender, u: TeamUnit) => members.filter(m => m.category === 'team' && m.gender === g && m.unit === u);
 
   return (
-    <div className="space-y-12 max-w-5xl mx-auto">
-      
-      {/* Intro Header */}
-      <div className="text-center space-y-3 pb-4">
-        <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-widest font-mono block">
-          APUMA Team Directory
-        </span>
-        <h1 className="text-3xl font-extrabold font-sans text-gray-950 tracking-tight">
-          Who's Behind APUMA?
-        </h1>
-        <p className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
-          The brilliant minds, content writers, multimedia designers, and executive board members who coordinate to serve Muslim students at Asia Pacific University.
+    <div className="py-10 animate-pop">
+      <div className="text-center">
+        <span className="inline-block bg-amber-100 text-amber-700 font-extrabold text-xs px-3.5 py-1.5 rounded-full">MEET THE TEAM</span>
+        <h1 className="text-4xl font-extrabold text-emerald-800 mt-4">Who’s Behind APUMA? 🌱</h1>
+        <p className="text-base font-semibold text-emerald-700/70 mt-2.5 max-w-xl mx-auto">
+          Islamic reminders and insights start with people. Meet the executives and the sisters’ and
+          brothers’ teams who serve the Muslim community at Asia Pacific University.
         </p>
       </div>
 
-      {/* 1. Executive Board Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-          <span className="text-amber-500 text-sm">👑</span>
-          <h2 className="text-xl font-bold text-gray-900 font-sans">Executive Leadership Board</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {executives.map((member) => (
-            <div 
-              key={member.id}
-              className="bg-white rounded-3xl border border-emerald-100/60 p-6 flex flex-col items-center text-center shadow-xl shadow-emerald-950/5 hover:border-emerald-200 hover:scale-[1.01] transition-all duration-300 relative overflow-hidden"
-            >
-              {/* Little visual accent on executive cards */}
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-400 to-emerald-600"></div>
-
-              {isEmoji(member.avatar) ? (
-                <div className="w-24 h-24 rounded-3xl bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-4xl shadow-md mb-4 select-none">
-                  {member.avatar}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-emerald-500 shadow-md mb-4 bg-slate-100 flex-shrink-0">
-                  <img 
-                    src={member.avatar} 
-                    alt={member.name} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-3 w-full">
-                <div>
-                  <h3 className="font-extrabold font-sans text-sm text-gray-900">{member.name}</h3>
-                  <span className="inline-block text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 mt-1 uppercase tracking-wide">
-                    {member.roleName}
-                  </span>
-                </div>
-
-                <p className="text-xs text-gray-600 leading-relaxed min-h-[72px]">
-                  {member.bio}
-                </p>
-
-                {/* Social Channels */}
-                <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-50">
-                  {member.instagram && (
-                    <a 
-                      href={member.instagram} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition"
-                    >
-                      <Instagram size={14} />
-                    </a>
-                  )}
-                  {member.linkedin && (
-                    <a 
-                      href={member.linkedin} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition"
-                    >
-                      <Linkedin size={14} />
-                    </a>
-                  )}
-                  <a 
-                    href="mailto:apuma@apu.edu.my" 
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition"
-                  >
-                    <Mail size={14} />
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Executive board */}
+      <section className="mt-10">
+        <h2 className="text-xl font-extrabold text-emerald-800 flex items-center gap-2 mb-5">👑 Executive Board</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {executives.map((m, i) => <MemberCard key={m.id} m={m} i={i} />)}
         </div>
       </section>
 
-      {/* 2. Committee Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-          <span className="text-emerald-600 text-sm">💡</span>
-          <h2 className="text-xl font-bold text-gray-900 font-sans">APUMA Committee & Working Team</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {workingCommittee.map((member) => (
-            <div 
-              key={member.id}
-              className="bg-white rounded-3xl border border-emerald-100/40 p-5 flex flex-col sm:flex-row gap-5 items-center shadow-lg shadow-emerald-950/2 hover:border-emerald-200 transition"
-            >
-              {isEmoji(member.avatar) ? (
-                <div className="w-20 h-20 rounded-2xl bg-emerald-50/50 border border-emerald-200 flex items-center justify-center text-3xl shadow-sm flex-shrink-0 select-none">
-                  {member.avatar}
-                </div>
-              ) : (
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-emerald-200 shadow-sm bg-slate-100 flex-shrink-0">
-                  <img 
-                    src={member.avatar} 
-                    alt={member.name} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2 flex-1 text-center sm:text-left">
-                <div>
-                  <h3 className="font-extrabold font-sans text-sm text-gray-900">{member.name}</h3>
-                  <span className="inline-block text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full mt-1">
-                    {member.roleName}
-                  </span>
-                </div>
-
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {member.bio}
-                </p>
-
-                <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                  <a 
-                    href="mailto:apuma@apu.edu.my" 
-                    className="p-1 rounded text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition text-[10px] font-mono flex items-center gap-1"
-                  >
-                    <Mail size={12} />
-                    <span>Contact</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Sisters' teams */}
+      <section className="mt-12 bg-linear-to-br from-pink-50/60 to-cream border border-pink-100 rounded-[28px] p-7">
+        <h2 className="text-xl font-extrabold text-emerald-800 flex items-center gap-2 mb-5">🌸 Sisters’ Teams</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
+          <SubTeam title="Design" emoji="🎨" members={team('sister', 'design')} offset={0} />
+          <SubTeam title="Da’wah" emoji="📖" members={team('sister', 'dawah')} offset={2} />
         </div>
       </section>
 
-      {/* Recruitment Callout */}
-      <div className="bg-amber-400/10 border border-amber-400/20 rounded-3xl p-6 text-center max-w-xl mx-auto space-y-3">
-        <Sparkles size={24} className="text-amber-500 mx-auto animate-bounce" />
-        <h3 className="font-bold text-amber-950 text-base">Want to Join the APUMA Committee?</h3>
-        <p className="text-xs text-amber-900 leading-normal max-w-md mx-auto">
-          We are always looking for creative content writers, digital designers, and enthusiastic event coordinators. Build experience and earn rewards!
+      {/* Brothers' teams */}
+      <section className="mt-8 bg-linear-to-br from-emerald-50 to-cream border border-emerald-100 rounded-[28px] p-7">
+        <h2 className="text-xl font-extrabold text-emerald-800 flex items-center gap-2 mb-5">🌿 Brothers’ Teams</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
+          <SubTeam title="Design" emoji="🎨" members={team('brother', 'design')} offset={0} />
+          <SubTeam title="Da’wah" emoji="📖" members={team('brother', 'dawah')} offset={2} />
+        </div>
+      </section>
+
+      {/* Recruitment callout */}
+      <div className="mt-12 bg-linear-to-br from-emerald-50 to-cream border border-emerald-100 rounded-[28px] p-8 text-center max-w-2xl mx-auto">
+        <div className="text-4xl">✨</div>
+        <h3 className="text-xl font-extrabold text-emerald-800 mt-2">Want to join a team?</h3>
+        <p className="text-sm font-semibold text-emerald-700/60 mt-2 max-w-md mx-auto leading-relaxed">
+          The sisters’ and brothers’ Design and Da’wah teams are always looking for creatives,
+          writers and helpers. Build experience and earn rewards!
         </p>
-        <div className="pt-2">
-          <a
-            id="lnk-members-recruit-cta"
-            href="/join"
-            className="inline-flex py-2 px-4 rounded-xl bg-amber-400 text-emerald-950 hover:bg-amber-300 font-bold text-xs transition"
-          >
-            Apply on "Join Us" Page
-          </a>
-        </div>
+        <Link
+          to="/join"
+          className="btn-pop inline-block mt-5 bg-amber-500 text-white text-sm px-6 py-3 shadow-[0_5px_0_0_#d97706] hover:bg-amber-400"
+        >
+          Apply on the Join Us page →
+        </Link>
       </div>
-
     </div>
   );
 };

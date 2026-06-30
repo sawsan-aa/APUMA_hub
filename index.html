@@ -2,11 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>APUMA | Student Portal & Seerah Academy</title>
+    <!-- Apply the saved theme before paint to avoid a flash of the wrong mode -->
+    <script>
+      try {
+        var m = document.cookie.match(/(?:^|; )apuma_theme=([^;]*)/);
+        if (m && decodeURIComponent(m[1]) === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>APU Muslim Association — Islamic reminders & insights</title>
+
+    <!-- PWA: installable on phones (Add to Home Screen). Relative paths so it
+         works under a GitHub Pages project subpath. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#065F46" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="APUMA" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>

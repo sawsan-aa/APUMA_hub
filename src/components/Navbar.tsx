@@ -1,285 +1,208 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { 
-  Menu, 
-  X, 
-  Award, 
-  Layers, 
-  Users, 
-  HelpCircle, 
-  Compass, 
-  Newspaper, 
-  ChevronDown, 
-  ShieldAlert, 
-  Sparkles,
-  Heart
-} from 'lucide-react';
+import { accountBadge, isStaff } from '../lib/account';
+import { InstallButton } from './InstallButton';
+import { ThemeToggle } from './ThemeToggle';
+import { Menu, X, LogOut, Star } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentUser, loginAs, progress } = useApp();
+  const { currentUser, logout, progress } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [showSandboxDrop, setShowSandboxDrop] = useState(false);
 
-  const activeRole = currentUser?.role || 'guest';
-
-  // Helper to determine if path is active
-  const isActive = (path: string) => location.pathname === path;
+  const role = currentUser?.role || 'guest';
+  const loggedIn = role !== 'guest';
+  const badge = accountBadge(role);
 
   const navLinks = [
-    { label: 'Public Hub', path: '/', icon: <Compass size={16} /> },
-    { label: 'Seerah Academy', path: '/academy', icon: <Award size={16} /> },
-    { label: 'Posts & Events', path: '/feed', icon: <Newspaper size={16} /> },
-    { label: 'Who Behind Us', path: '/team', icon: <Users size={16} /> },
-    { label: 'Join Us', path: '/join', icon: <HelpCircle size={16} /> },
+    { label: 'Home', path: '/' },
+    { label: 'Courses', path: '/courses' },
+    { label: 'Broadcast', path: '/broadcast' },
+    { label: 'Posts', path: '/feed' },
+    { label: 'Members', path: '/team' },
+    { label: 'Join Us', path: '/join' },
   ];
+  if (isStaff(role)) navLinks.push({ label: 'Workspace', path: '/workspace' });
+
+  // /academy is part of the Courses section
+  const isActive = (path: string) =>
+    path === '/courses'
+      ? location.pathname === '/courses' || location.pathname === '/academy'
+      : location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+    navigate('/');
+  };
+
+  // Close the side menu on navigation
+  useEffect(() => { setIsOpen(false); }, [location.pathname]);
+
+  // Lock body scroll while the side menu is open + close on Escape
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
+  }, [isOpen]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-emerald-100/60 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          
-          {/* APUMA Brand Identity with cute child-friendly green crescent logo */}
-          <Link id="lnk-nav-home" to="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-700 text-white flex items-center justify-center font-bold text-xl shadow-md border-2 border-emerald-500 group-hover:scale-105 transition-transform duration-300">
-              <span className="text-amber-400 font-sans">🕌</span>
+    <header className="sticky top-0 z-50 bg-cream/85 backdrop-blur-md border-b border-emerald-100">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4 h-[68px]">
+
+          {/* Brand */}
+          <Link id="lnk-nav-home" to="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-[42px] h-[42px] rounded-2xl bg-linear-to-br from-emerald-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-600/40 group-hover:scale-105 transition-transform">
+              <img src={`${import.meta.env.BASE_URL}icons/logo-mark.png`} alt="APUMA" className="w-7 h-7 object-contain" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base text-emerald-900 font-sans tracking-tight">APUMA</span>
-                <span className="bg-amber-400 text-emerald-950 text-[9px] font-extrabold font-sans px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                  APU
-                </span>
-              </div>
-              <p className="text-[10px] text-emerald-700 font-medium font-sans">Muslim Student Association</p>
+            <div className="leading-tight">
+              <div className="font-display font-extrabold text-[19px] text-emerald-800">APUMA</div>
+              <div className="hidden sm:block text-[11px] font-bold text-emerald-500">Islamic reminders &amp; insights ✦</div>
             </div>
           </Link>
 
-          {/* Desktop Links */}
-          <nav className="hidden lg:flex items-center gap-1.5">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                id={`lnk-nav-${link.path.replace('/', '') || 'home'}`}
-                to={link.path}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold font-sans flex items-center gap-2 transition ${
-                  isActive(link.path)
-                    ? 'bg-emerald-50 text-emerald-800 font-extrabold'
-                    : 'text-gray-600 hover:bg-emerald-50/50 hover:text-emerald-900'
-                }`}
-              >
-                {link.icon}
-                {link.label}
-              </Link>
-            ))}
+          {/* Controls (all sizes) — page links live in the side menu to keep this tidy */}
+          <div className="flex items-center gap-2 sm:gap-2.5 ml-auto shrink-0">
+            {/* XP (hidden on phones to keep room for the account/login) */}
+            <div className="hidden sm:flex items-center gap-1.5 bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl">
+              <Star size={13} className="text-amber-500 fill-amber-400" />
+              <span className="text-xs font-extrabold text-amber-700">{progress.totalXp} XP</span>
+            </div>
 
-            {/* Protected internal workspace visible only to Team/Executives/Admin */}
-            {(activeRole === 'team' || activeRole === 'executive' || activeRole === 'admin') && (
+            {/* Account / Log in (kept in the navbar) */}
+            {loggedIn ? (
+              <div className="flex items-center gap-2 bg-white border border-emerald-100 p-1.5 sm:pl-3.5 rounded-2xl shadow-sm shadow-emerald-600/10">
+                <div className="hidden sm:block text-right leading-tight">
+                  <div className="text-[13px] font-extrabold text-emerald-900">{currentUser?.name}</div>
+                  <div className={`text-[10px] font-extrabold uppercase tracking-wide ${badge.badgeText}`}>{badge.label}</div>
+                </div>
+                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg ${badge.badgeBg}`}>
+                  {currentUser?.avatar || badge.emoji}
+                </div>
+                <button
+                  id="btn-logout"
+                  onClick={handleLogout}
+                  title="Log out"
+                  className="hidden sm:flex w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 items-center justify-center transition cursor-pointer"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
               <Link
-                id="lnk-nav-workflow"
-                to="/workflow"
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold font-sans flex items-center gap-2 border border-dashed transition ${
-                  isActive('/workflow')
-                    ? 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold'
-                    : 'border-emerald-200 text-emerald-800 bg-emerald-50/40 hover:bg-emerald-100'
-                }`}
+                id="btn-nav-login"
+                to="/login"
+                className="btn-pop bg-emerald-600 text-white text-sm px-4 sm:px-5 py-2.5 shadow-[0_5px_0_0_#047857] hover:bg-emerald-500"
               >
-                <Layers size={14} className="animate-pulse" />
-                Work Desk
+                Log in
               </Link>
             )}
-          </nav>
 
-          {/* Right Area: XP Counter & Sandbox Role Switcher */}
-          <div className="hidden lg:flex items-center gap-4">
-            
-            {/* Live XP Counter for gamified course */}
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-2xl">
-              <span className="text-amber-500 text-sm">✨</span>
-              <span className="text-xs font-mono font-bold text-amber-950">
-                {progress.totalXp} XP
-              </span>
-            </div>
-
-            {/* Developer Sandbox Switcher Dropdown */}
-            <div className="relative">
-              <button
-                id="btn-nav-role-switcher"
-                onClick={() => setShowSandboxDrop(!showSandboxDrop)}
-                className="px-4 py-2 bg-emerald-800 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-2 cursor-pointer border border-emerald-600 shadow-sm"
-              >
-                <span>Role: </span>
-                <span className="text-amber-300 capitalize">{activeRole}</span>
-                <ChevronDown size={14} />
-              </button>
-
-              {showSandboxDrop && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-emerald-100 shadow-xl p-3 z-50">
-                  <span className="text-[10px] font-bold font-mono text-emerald-900 uppercase tracking-widest block mb-2 px-2">
-                    🔄 SANDBOX SIMULATOR
-                  </span>
-                  
-                  <div className="space-y-1">
-                    <button
-                      id="btn-sim-guest"
-                      onClick={() => { loginAs('guest'); setShowSandboxDrop(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-between cursor-pointer ${
-                        activeRole === 'guest' ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-gray-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Public Guest</span>
-                    </button>
-                    <button
-                      id="btn-sim-member"
-                      onClick={() => { loginAs('member'); setShowSandboxDrop(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-between cursor-pointer ${
-                        activeRole === 'member' ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-gray-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Student Member</span>
-                    </button>
-                    <button
-                      id="btn-sim-team"
-                      onClick={() => { loginAs('team'); setShowSandboxDrop(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-between cursor-pointer ${
-                        activeRole === 'team' ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-gray-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>APUMA Team (Designer)</span>
-                    </button>
-                    <button
-                      id="btn-sim-exec"
-                      onClick={() => { loginAs('executive'); setShowSandboxDrop(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-between cursor-pointer ${
-                        activeRole === 'executive' ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-gray-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Executive (President)</span>
-                    </button>
-                    <button
-                      id="btn-sim-admin"
-                      onClick={() => { loginAs('admin'); setShowSandboxDrop(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-between cursor-pointer ${
-                        activeRole === 'admin' ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-gray-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Super Admin ⚡</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-          </div>
-
-          {/* Mobile hamburger button */}
-          <div className="lg:hidden flex items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-xl">
-              <span className="text-[10px] font-bold text-amber-800">{progress.totalXp} XP</span>
-            </div>
-
+            <ThemeToggle className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center cursor-pointer" />
             <button
               id="btn-mobile-menu"
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-100 hover:bg-emerald-100 transition cursor-pointer"
+              onClick={() => setIsOpen(true)}
+              aria-label="Open menu"
+              className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center cursor-pointer"
             >
-              {isOpen ? <X size={20} /> : <Menu size={20} />}
+              <Menu size={20} />
             </button>
           </div>
-
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {isOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white px-4 py-5 space-y-3.5 shadow-inner">
-          <nav className="flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                id={`lnk-mob-${link.path.replace('/', '') || 'home'}`}
-                to={link.path}
-                onClick={() => setIsOpen(false)}
-                className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 ${
-                  isActive(link.path)
-                    ? 'bg-emerald-50 text-emerald-800 font-extrabold'
-                    : 'text-gray-600 hover:bg-emerald-50/50'
-                }`}
-              >
-                {link.icon}
-                {link.label}
-              </Link>
-            ))}
+      {/* Mobile side menu — portaled to <body> so the sticky header's
+          backdrop-blur can't clip it or stack it under page content */}
+      {createPortal(
+        <div className={`fixed inset-0 z-60 ${isOpen ? '' : 'pointer-events-none'}`} aria-hidden={!isOpen}>
+        {/* backdrop */}
+        <div
+          onClick={() => setIsOpen(false)}
+          className={`absolute inset-0 bg-emerald-950/50 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        />
 
-            {(activeRole === 'team' || activeRole === 'executive' || activeRole === 'admin') && (
-              <Link
-                id="lnk-mob-workflow"
-                to="/workflow"
-                onClick={() => setIsOpen(false)}
-                className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 border border-dashed border-emerald-200 text-emerald-800 bg-emerald-50/20`}
-              >
-                <Layers size={15} />
-                Work Desk (Team)
-              </Link>
-            )}
-          </nav>
-
-          {/* Mobile Role Switching sandbox */}
-          <div className="border-t border-slate-100 pt-4">
-            <span className="text-[10px] font-bold font-mono text-emerald-900 uppercase tracking-widest block mb-2 px-1">
-              🔄 QUICK ROLE SWITCH
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                id="btn-mob-sim-guest"
-                onClick={() => { loginAs('guest'); setIsOpen(false); }}
-                className={`py-2 px-3 text-[11px] font-semibold rounded-xl border cursor-pointer ${
-                  activeRole === 'guest' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 border-gray-200 text-gray-700'
-                }`}
-              >
-                Guest
-              </button>
-              <button
-                id="btn-mob-sim-member"
-                onClick={() => { loginAs('member'); setIsOpen(false); }}
-                className={`py-2 px-3 text-[11px] font-semibold rounded-xl border cursor-pointer ${
-                  activeRole === 'member' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 border-gray-200 text-gray-700'
-                }`}
-              >
-                Member
-              </button>
-              <button
-                id="btn-mob-sim-team"
-                onClick={() => { loginAs('team'); setIsOpen(false); }}
-                className={`py-2 px-3 text-[11px] font-semibold rounded-xl border cursor-pointer ${
-                  activeRole === 'team' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 border-gray-200 text-gray-700'
-                }`}
-              >
-                APUMA Team
-              </button>
-              <button
-                id="btn-mob-sim-exec"
-                onClick={() => { loginAs('executive'); setIsOpen(false); }}
-                className={`py-2 px-3 text-[11px] font-semibold rounded-xl border cursor-pointer ${
-                  activeRole === 'executive' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 border-gray-200 text-gray-700'
-                }`}
-              >
-                Executive
-              </button>
-              <button
-                id="btn-mob-sim-admin"
-                onClick={() => { loginAs('admin'); setIsOpen(false); }}
-                className={`py-2 px-3 text-[11px] font-semibold rounded-xl border cursor-pointer ${
-                  activeRole === 'admin' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 border-gray-200 text-gray-700'
-                }`}
-              >
-                Admin
-              </button>
+        {/* sliding panel */}
+        <aside
+          className={`absolute top-0 right-0 h-full w-[82%] max-w-xs bg-cream shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
+            isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          {/* panel header */}
+          <div className="flex items-center justify-between px-5 h-[68px] border-b border-emerald-100 shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-600 to-emerald-500 flex items-center justify-center">
+                <img src={`${import.meta.env.BASE_URL}icons/logo-mark.png`} alt="APUMA" className="w-6 h-6 object-contain" />
+              </div>
+              <span className="font-display font-extrabold text-[17px] text-emerald-800">APUMA</span>
             </div>
+            <button
+              id="btn-close-menu"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close menu"
+              className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center cursor-pointer"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-        </div>
+          {/* panel content */}
+          <div className="flex-1 overflow-y-auto apuma-scroll px-5 py-4 space-y-4">
+            <nav className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  id={`lnk-mob-${link.path.replace('/', '') || 'home'}`}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`px-4 py-3 rounded-xl text-sm font-extrabold transition ${
+                    isActive(link.path) ? 'bg-emerald-100 text-emerald-800' : 'text-emerald-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {loggedIn ? (
+              <div className="flex items-center justify-between gap-3 bg-white border border-emerald-100 rounded-2xl px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg ${badge.badgeBg}`}>
+                    {currentUser?.avatar || badge.emoji}
+                  </div>
+                  <div className="leading-tight">
+                    <div className="text-[13px] font-extrabold text-emerald-900">{currentUser?.name}</div>
+                    <div className={`text-[10px] font-extrabold uppercase ${badge.badgeText}`}>{badge.label}</div>
+                  </div>
+                </div>
+                <button
+                  id="btn-mob-logout"
+                  onClick={handleLogout}
+                  className="px-3 py-2 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogOut size={14} /> Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                id="btn-mob-login"
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="btn-pop block text-center bg-emerald-600 text-white text-sm px-5 py-3 shadow-[0_5px_0_0_#047857]"
+              >
+                Log in
+              </Link>
+            )}
+
+            <InstallButton block className="btn-pop inline-flex items-center justify-center gap-1.5 bg-amber-500 text-white text-sm px-5 py-3 shadow-[0_5px_0_0_#d97706]" />
+          </div>
+        </aside>
+        </div>,
+        document.body,
       )}
     </header>
   );

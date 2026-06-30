@@ -1,148 +1,99 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { 
-  Instagram, 
-  Twitter, 
-  MessageCircle, 
-  Award, 
-  ChevronRight, 
-  Compass, 
-  Users,
-  MapPin,
-  Mail,
-  Heart
-} from 'lucide-react';
+import { Instagram, Youtube } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { systemConfig } = useApp();
 
   return (
-    <footer className="bg-emerald-950 text-white border-t border-emerald-900 mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-          
-          {/* APUMA brand statement with beautiful typography */}
-          <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center font-bold text-lg border border-emerald-500">
-                <span>🕌</span>
+    <footer className="mt-16 bg-linear-to-br from-emerald-900 to-emerald-800 text-emerald-100">
+      <div className="max-w-6xl mx-auto px-6 pt-12 pb-8">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8">
+
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-[13px] bg-white/15 flex items-center justify-center">
+                <img src={`${import.meta.env.BASE_URL}icons/logo-mark.png`} alt="APUMA" className="w-7 h-7 object-contain" />
               </div>
-              <span className="font-extrabold text-lg text-emerald-100 font-sans tracking-tight">
-                APUMA ACADEMY
-              </span>
+              <span className="font-display font-extrabold text-xl text-white">APUMA</span>
             </div>
-            
-            <p className="text-emerald-200/70 text-xs leading-relaxed max-w-sm">
-              The Muslim Association of Asia Pacific University (APUMA) is a student-led organization designed to foster brotherhood, sisterhood, spiritual enrichment, and dynamic academic growth on campus.
+            <p className="text-[13px] font-semibold mt-3.5 leading-relaxed max-w-[260px] text-emerald-200">
+              APU Muslim Association — Islamic reminders &amp; insights, and a home for the Muslim student community at Asia Pacific University.
             </p>
+          </div>
 
-            <div className="flex items-center gap-3 text-emerald-200/50 text-[11px] pt-2">
-              <div className="flex items-center gap-1">
-                <MapPin size={12} />
-                <span>APU Campus, Kuala Lumpur</span>
-              </div>
+          {/* Explore */}
+          <div className="md:col-span-3">
+            <h4 className="text-sm font-extrabold text-white mb-3">Explore</h4>
+            <div className="flex flex-col gap-2 text-[13px] font-semibold">
+              <Link to="/feed" className="text-emerald-200 hover:text-white transition">Latest Posts</Link>
+              <Link to="/feed" className="text-emerald-200 hover:text-white transition">Events &amp; Posters</Link>
+              <Link to="/courses" className="text-emerald-200 hover:text-white transition">Seerah Course</Link>
+              <Link to="/broadcast" className="text-emerald-200 hover:text-white transition">Broadcast</Link>
+              <Link to="/team" className="text-emerald-200 hover:text-white transition">Our Members</Link>
             </div>
           </div>
 
-          {/* Quick links to all requested public pages */}
-          <div className="md:col-span-3 space-y-4">
-            <h4 className="font-bold font-sans text-xs uppercase tracking-widest text-amber-400">
-              Navigation
-            </h4>
-            <nav className="flex flex-col gap-2">
-              <Link id="lnk-foot-home" to="/" className="text-emerald-200/80 hover:text-white text-xs transition flex items-center gap-1">
-                <ChevronRight size={12} className="text-amber-500" />
-                Public Hub
-              </Link>
-              <Link id="lnk-foot-course" to="/academy" className="text-emerald-200/80 hover:text-white text-xs transition flex items-center gap-1">
-                <ChevronRight size={12} className="text-amber-500" />
-                Seerah Academy
-              </Link>
-              <Link id="lnk-foot-feed" to="/feed" className="text-emerald-200/80 hover:text-white text-xs transition flex items-center gap-1">
-                <ChevronRight size={12} className="text-amber-500" />
-                Announcements & Posters
-              </Link>
-              <Link id="lnk-foot-team" to="/team" className="text-emerald-200/80 hover:text-white text-xs transition flex items-center gap-1">
-                <ChevronRight size={12} className="text-amber-500" />
-                Executive Leadership
-              </Link>
-              <Link id="lnk-foot-join" to="/join" className="text-emerald-200/80 hover:text-white text-xs transition flex items-center gap-1">
-                <ChevronRight size={12} className="text-amber-500" />
-                Recruitment & Form
-              </Link>
-            </nav>
+          {/* Community */}
+          <div className="md:col-span-2">
+            <h4 className="text-sm font-extrabold text-white mb-3">Community</h4>
+            <div className="flex flex-col gap-2 text-[13px] font-semibold">
+              <Link to="/team" className="text-emerald-200 hover:text-white transition">About APUMA</Link>
+              <Link to="/join" className="text-emerald-200 hover:text-white transition">Join Us</Link>
+              <a href="https://asksunnah.com" target="_blank" rel="noreferrer" className="text-emerald-200 hover:text-white transition">Ask Sunnah</a>
+              <a href="mailto:apuma@apu.edu.my" className="text-emerald-200 hover:text-white transition">Contact</a>
+            </div>
           </div>
 
-          {/* Connect handles & direct click CTAs */}
-          <div className="md:col-span-4 space-y-5">
-            <div>
-              <h4 className="font-bold font-sans text-xs uppercase tracking-widest text-amber-400 mb-3">
-                Connect With Us
-              </h4>
-              
-              <div className="flex items-center gap-3">
-                <a 
-                  id="lnk-foot-instagram"
-                  href="https://www.instagram.com/apu_ma/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-emerald-900 border border-emerald-800 text-emerald-200 hover:text-white hover:bg-emerald-800 transition"
-                >
-                  <Instagram size={18} />
-                </a>
-                <a 
-                  id="lnk-foot-twitter"
-                  href="https://x.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-emerald-900 border border-emerald-800 text-emerald-200 hover:text-white hover:bg-emerald-800 transition"
-                >
-                  <Twitter size={18} />
-                </a>
-                <a 
-                  id="lnk-foot-email"
-                  href="mailto:apuma@apu.edu.my" 
-                  className="p-2.5 rounded-xl bg-emerald-900 border border-emerald-800 text-emerald-200 hover:text-white hover:bg-emerald-800 transition"
-                >
-                  <Mail size={18} />
-                </a>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          {/* Stay connected */}
+          <div className="col-span-2 md:col-span-2">
+            <h4 className="text-sm font-extrabold text-white mb-3">Stay connected</h4>
+            <div className="flex gap-2.5 mb-4">
               <a
-                id="lnk-foot-whatsapp-channel"
-                href={systemConfig.whatsappGroupUrl}
+                href="https://www.instagram.com/apu_ma/"
                 target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+                rel="noreferrer"
+                className="w-[42px] h-[42px] rounded-[13px] bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <MessageCircle size={14} />
-                Join WhatsApp
+                <Instagram size={20} className="text-white" />
               </a>
-
-              <Link
-                id="lnk-foot-academy-cta"
-                to="/academy"
-                className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+              <a
+                href="https://www.youtube.com/@apumuslimassociation"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="YouTube"
+                className="w-[42px] h-[42px] rounded-[13px] bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <Award size={14} />
-                Join Seerah Course
-              </Link>
+                <Youtube size={20} className="text-white" />
+              </a>
             </div>
+            <a
+              href={systemConfig.whatsappGroupUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block text-center w-full bg-green-600 hover:bg-green-500 text-white font-extrabold text-[13px] py-2.5 rounded-[13px] mb-2.5 transition"
+            >
+              Join Community
+            </a>
+            <Link
+              to="/courses"
+              className="block text-center w-full bg-amber-500 hover:bg-amber-400 text-white font-extrabold text-[13px] py-2.5 rounded-[13px] transition"
+            >
+              Join Course
+            </Link>
           </div>
-
         </div>
 
-        {/* Legal and system info */}
-        <div className="border-t border-emerald-900/60 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-emerald-200/40 font-mono">
-          <p>© 2026 APUMA. Muslim Association of Asia Pacific University. All Rights Reserved.</p>
-          <div className="flex items-center gap-1 mt-2 sm:mt-0 text-[10px]">
-            <span>Developed with</span>
-            <Heart size={10} className="text-rose-500 fill-rose-500 animate-pulse" />
-            <span>for beneficial knowledge.</span>
-          </div>
+        <div className="border-t border-white/10 mt-8 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <p className="text-[12.5px] font-semibold text-emerald-300">
+            © 2026 APU Muslim Association. Made with 💚 for the ummah.
+          </p>
+          <p className="text-[12.5px] font-semibold text-emerald-300">
+            <span className="font-display text-amber-300">اهدِنَا الصِّرَاطَ المُستَقِيمَ</span>
+            <span className="text-emerald-200/70"> — “Guide us to the Straight Path.” (1:5)</span>
+          </p>
         </div>
       </div>
     </footer>

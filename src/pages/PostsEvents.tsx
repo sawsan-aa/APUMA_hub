@@ -1,309 +1,222 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PublishedPost } from '../types';
-import { 
-  Calendar, 
-  MapPin, 
-  User, 
-  BookOpen, 
-  X, 
-  Tag, 
-  Sparkles, 
-  Download,
-  Copy,
-  Check,
-  Trash2
-} from 'lucide-react';
+import { canModerate } from '../lib/account';
+import { X, Copy, Check, Trash2, Tag } from 'lucide-react';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmtDay = (d: string) => d.slice(8, 10);
+const fmtMon = (d: string) => MONTHS[Math.max(0, parseInt(d.slice(5, 7), 10) - 1)] || '';
+
+type Filter = 'all' | 'post' | 'event' | 'announcement';
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'post', label: 'Posts' },
+  { key: 'event', label: 'Events' },
+  { key: 'announcement', label: 'Announcements' },
+];
+
+const tagColor = (c: string) => (c === 'event' ? '#059669' : c === 'announcement' ? '#E11D48' : '#F59E0B');
 
 export const PostsEvents: React.FC = () => {
-  const { posts, currentUser, deletePost } = useApp();
-  const userRole = currentUser?.role || 'guest';
-  const isLeader = userRole === 'team' || userRole === 'executive' || userRole === 'admin';
+  const { posts, currentUser, deletePost, systemConfig } = useApp();
+  const role = currentUser?.role || 'guest';
+  const isLeader = canModerate(role);
 
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'post' | 'event' | 'announcement'>('all');
-  const [selectedPost, setSelectedPost] = useState<PublishedPost | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [selected, setSelected] = useState<PublishedPost | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  // Copying helper state
-  const [isCopied, setIsCopied] = useState(false);
+  const filtered = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+  const featured = filtered[0] || null;
+  const rest = filtered.slice(1);
+  const news = posts.filter(p => p.category === 'event' || p.category === 'announcement').slice(0, 4);
 
-  // Filter posts based on category selection
-  const filteredPosts = posts.filter(post => {
-    if (selectedCategory === 'all') return true;
-    return post.category === selectedCategory;
-  });
-
-  const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case 'event':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'announcement':
-        return 'bg-rose-100 text-rose-800 border-rose-200';
-      default:
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    }
-  };
-
-  const handleCopyCaption = (post: PublishedPost) => {
-    navigator.clipboard.writeText(post.content);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  const copyCaption = (p: PublishedPost) => {
+    navigator.clipboard.writeText(p.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
-      
-      {/* Page Header */}
-      <div className="text-center space-y-3 pb-2">
-        <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-widest font-mono block">
-          APUMA Noticeboard
-        </span>
-        <h1 className="text-3xl font-extrabold font-sans text-gray-950 tracking-tight">
-          Feeds, Posters & Events
-        </h1>
-        <p className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
-          Explore educational slides, student announcements, and beneficial reminders designed by the APUMA design committees.
-        </p>
-      </div>
-
-      {/* Category Filter Pills */}
-      <div className="flex flex-wrap items-center justify-center gap-2 border-y border-gray-100 py-4">
-        <button
-          id="btn-filter-all"
-          onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            selectedCategory === 'all'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-slate-50 border border-gray-200 text-gray-600 hover:bg-slate-100'
-          }`}
-        >
-          All Updates ({posts.length})
-        </button>
-        <button
-          id="btn-filter-posts"
-          onClick={() => setSelectedCategory('post')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            selectedCategory === 'post'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-slate-50 border border-gray-200 text-gray-600 hover:bg-slate-100'
-          }`}
-        >
-          Infographics ({posts.filter(p => p.category === 'post').length})
-        </button>
-        <button
-          id="btn-filter-events"
-          onClick={() => setSelectedCategory('event')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            selectedCategory === 'event'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-slate-50 border border-gray-200 text-gray-600 hover:bg-slate-100'
-          }`}
-        >
-          Campaigns & Events ({posts.filter(p => p.category === 'event').length})
-        </button>
-        <button
-          id="btn-filter-announcements"
-          onClick={() => setSelectedCategory('announcement')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-            selectedCategory === 'announcement'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-slate-50 border border-gray-200 text-gray-600 hover:bg-slate-100'
-          }`}
-        >
-          Announcements ({posts.filter(p => p.category === 'announcement').length})
-        </button>
-      </div>
-
-      {/* Grid of Published posts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {filteredPosts.length === 0 ? (
-          <div className="md:col-span-3 text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-            <p className="text-xs text-slate-500">No approved posts found for this category.</p>
-          </div>
-        ) : (
-          filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              onClick={() => setSelectedPost(post)}
-              className="group bg-white rounded-3xl border border-emerald-100/60 overflow-hidden shadow-xl shadow-emerald-950/5 flex flex-col justify-between hover:shadow-md hover:border-emerald-200 transition duration-300 cursor-pointer"
+    <div className="py-10 animate-pop">
+      {/* header + tabs */}
+      <div className="flex flex-wrap items-end justify-between gap-3.5">
+        <div>
+          <span className="inline-block bg-green-100 text-green-700 font-extrabold text-xs px-3.5 py-1.5 rounded-full">FROM APUMA</span>
+          <h1 className="text-4xl font-extrabold text-emerald-800 mt-3">Posts &amp; News 📰</h1>
+          <p className="text-[15px] font-semibold text-emerald-700/60 mt-2">Reflections, tafsir snippets, campus updates and announcements.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {FILTERS.map(f => (
+            <button
+              key={f.key}
+              id={`btn-filter-${f.key}`}
+              onClick={() => setFilter(f.key)}
+              className={`font-extrabold text-[13px] px-3.5 py-2.5 rounded-xl transition cursor-pointer ${
+                filter === f.key ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              }`}
             >
-              <div>
-                <div className="aspect-video relative bg-slate-100 overflow-hidden">
-                  <img 
-                    src={post.images[0]} 
-                    alt={post.title} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                  />
-                  <span className={`absolute top-3 left-3 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm border ${getCategoryBadge(post.category)}`}>
-                    {post.category}
-                  </span>
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_330px] gap-7 mt-7 items-start">
+        {/* main column */}
+        <div>
+          {!featured ? (
+            <div className="text-center py-16 bg-emerald-50/60 rounded-3xl border border-dashed border-emerald-200 text-sm font-semibold text-emerald-700/60">
+              No posts in this category yet.
+            </div>
+          ) : (
+            <>
+              <article
+                onClick={() => setSelected(featured)}
+                className="card-lift grid sm:grid-cols-[42%_1fr] bg-white border border-emerald-50 rounded-[28px] overflow-hidden shadow-[0_12px_32px_-20px_rgba(5,150,105,0.45)] cursor-pointer"
+              >
+                <div className="bg-emerald-100 min-h-[200px]">
+                  <img src={featured.images[0]} alt={featured.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                </div>
+                <div className="p-7 relative">
                   {isLeader && (
                     <button
-                      id={`btn-delete-post-${post.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Are you sure you want to delete this posted post from APUMA noticeboard?')) {
-                          deletePost(post.id);
-                        }
-                      }}
-                      title="Delete Post"
-                      className="absolute top-3 right-3 p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-full border border-rose-100 shadow-sm transition hover:scale-110 cursor-pointer z-10"
+                      id={`btn-delete-${featured.id}`}
+                      onClick={(e) => { e.stopPropagation(); if (confirm('Delete this post?')) deletePost(featured.id); }}
+                      className="absolute top-4 right-4 w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-100 cursor-pointer"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={14} />
                     </button>
                   )}
-                </div>
-
-                <div className="p-6 space-y-3">
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono">
-                    <Calendar size={11} />
-                    <span>{post.date}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: tagColor(featured.category) }}>{featured.category}</span>
+                    <span className="text-[11px] font-bold text-gray-400">· {featured.date}</span>
                   </div>
-
-                  <h3 className="font-extrabold text-base text-gray-900 group-hover:text-emerald-800 transition line-clamp-2">
-                    {post.title}
-                  </h3>
-
-                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                    {post.content}
-                  </p>
+                  <h2 className="text-[27px] font-extrabold text-emerald-900 mt-2.5 leading-tight">{featured.title}</h2>
+                  <p className="text-[14.5px] font-semibold text-emerald-700/60 mt-3 leading-relaxed line-clamp-4">{featured.content}</p>
+                  <div className="flex items-center justify-between mt-5">
+                    <span className="text-[13px] font-extrabold text-emerald-700">✍️ {featured.author}</span>
+                    <span className="text-[13px] font-extrabold text-emerald-600">Read post →</span>
+                  </div>
                 </div>
-              </div>
+              </article>
 
-              <div className="p-6 pt-0 mt-4 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-500">
-                <span className="font-medium flex items-center gap-1">
-                  <User size={10} />
-                  {post.author}
-                </span>
-                <span className="text-emerald-700 font-bold group-hover:underline flex items-center gap-0.5">
-                  View Script →
-                </span>
+              <div className="grid sm:grid-cols-2 gap-[18px] mt-[18px]">
+                {rest.map(p => (
+                  <article
+                    key={p.id}
+                    onClick={() => setSelected(p)}
+                    className="card-lift bg-white border border-emerald-50 rounded-3xl overflow-hidden shadow-[0_8px_26px_-16px_rgba(5,150,105,0.4)] cursor-pointer relative"
+                  >
+                    {isLeader && (
+                      <button
+                        id={`btn-delete-${p.id}`}
+                        onClick={(e) => { e.stopPropagation(); if (confirm('Delete this post?')) deletePost(p.id); }}
+                        className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 text-rose-600 flex items-center justify-center hover:bg-rose-50 cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                    <div className="h-[118px] bg-emerald-100 overflow-hidden">
+                      <img src={p.images[0]} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-[18px]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: tagColor(p.category) }}>{p.category}</span>
+                        <span className="text-[11px] font-bold text-gray-400">· {p.date}</span>
+                      </div>
+                      <h3 className="text-[17px] font-bold text-emerald-900 mt-1 leading-tight line-clamp-2">{p.title}</h3>
+                      <p className="text-[12.5px] font-semibold text-emerald-700/60 mt-1.5 leading-snug line-clamp-2">{p.content}</p>
+                    </div>
+                  </article>
+                ))}
               </div>
+            </>
+          )}
+        </div>
+
+        {/* sidebar */}
+        <aside className="flex flex-col gap-[18px] lg:sticky lg:top-[85px]">
+          <div className="bg-white border border-emerald-50 rounded-[26px] p-6 shadow-[0_10px_30px_-20px_rgba(5,150,105,0.45)]">
+            <h3 className="text-lg font-extrabold text-emerald-800 flex items-center gap-2">📣 News &amp; Announcements</h3>
+            <div className="mt-3.5">
+              {news.length === 0 ? (
+                <p className="text-[13px] font-semibold text-emerald-700/50 py-3">Nothing scheduled right now.</p>
+              ) : news.map(n => (
+                <button
+                  key={n.id}
+                  onClick={() => setSelected(n)}
+                  className="w-full flex gap-3 py-3.5 border-b border-emerald-50 last:border-0 text-left cursor-pointer group"
+                >
+                  <div className="shrink-0 w-[46px] text-center rounded-xl py-1.5" style={{ background: `${tagColor(n.category)}1f` }}>
+                    <div className="text-base font-extrabold leading-none" style={{ color: tagColor(n.category) }}>{fmtDay(n.date)}</div>
+                    <div className="text-[9.5px] font-extrabold uppercase" style={{ color: tagColor(n.category) }}>{fmtMon(n.date)}</div>
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-[13.5px] font-extrabold text-emerald-900 leading-tight group-hover:text-emerald-600 line-clamp-2">{n.title}</h4>
+                    <p className="text-xs font-semibold text-emerald-700/55 mt-1 line-clamp-2 leading-snug">{n.content}</p>
+                  </div>
+                </button>
+              ))}
             </div>
-          ))
-        )}
+          </div>
+
+          <div className="bg-linear-to-br from-emerald-800 to-emerald-600 rounded-[26px] p-6 text-white">
+            <h3 className="text-lg font-extrabold">Never miss a drop 🌙</h3>
+            <p className="text-[13px] font-semibold text-emerald-100 mt-1.5 leading-relaxed">Join our WhatsApp Channel for weekly Seerah posts and event news.</p>
+            <a
+              href={systemConfig.whatsappGroupUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block text-center w-full bg-white text-emerald-800 font-extrabold text-sm py-3 rounded-2xl mt-4 hover:bg-emerald-50 transition"
+            >
+              Join the channel →
+            </a>
+          </div>
+        </aside>
       </div>
 
-      {/* ======================================================= */}
-      {/* READ POST & SLIDES MODAL */}
-      {/* ======================================================= */}
-      {selectedPost && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-2xl w-full rounded-3xl overflow-hidden border border-emerald-100 shadow-2xl flex flex-col justify-between max-h-[90vh]">
-            
-            {/* Header */}
-            <div className="p-5 bg-emerald-800 text-white flex items-center justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-bold font-mono text-amber-300 block mb-1 uppercase tracking-wider">
-                  APUMA Feed Reader
-                </span>
-                <h3 className="text-sm font-bold truncate max-w-md">{selectedPost.title}</h3>
-              </div>
-
-              <button
-                id="btn-close-post-reader"
-                onClick={() => setSelectedPost(null)}
-                className="p-1.5 rounded-full hover:bg-emerald-700 text-white/80 hover:text-white transition cursor-pointer"
-              >
-                <X size={20} />
+      {/* reader modal */}
+      {selected && (
+        <div className="fixed inset-0 z-100 bg-emerald-900/55 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-[28px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between gap-4 px-6 py-4 bg-linear-to-br from-emerald-800 to-emerald-600 text-white">
+              <h3 className="text-sm font-extrabold truncate">{selected.title}</h3>
+              <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-full hover:bg-white/15 flex items-center justify-center cursor-pointer">
+                <X size={18} />
               </button>
             </div>
-
-            {/* Body */}
-            <div className="p-8 overflow-y-auto space-y-6">
-              
-              {/* Graphic Carousel mock */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {selectedPost.images.map((img, imgIdx) => (
-                  <div key={imgIdx} className="rounded-2xl overflow-hidden aspect-video bg-black border border-slate-100 shadow-sm relative">
-                    <img 
-                      src={img} 
-                      alt={`Carousel slide ${imgIdx+1}`} 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-2 right-2 bg-emerald-950/85 text-amber-300 font-bold font-mono text-[9px] px-2 py-0.5 rounded-full border border-emerald-700/50">
-                      Slide {imgIdx + 1}
-                    </span>
+            <div className="p-7 overflow-y-auto apuma-scroll space-y-5">
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                {selected.images.map((img, i) => (
+                  <div key={i} className="rounded-2xl overflow-hidden aspect-video bg-emerald-100 relative">
+                    <img src={img} alt={`slide ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 right-2 bg-emerald-900/80 text-amber-300 font-extrabold text-[9px] px-2 py-0.5 rounded-full">Slide {i + 1}</span>
                   </div>
                 ))}
               </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-4 text-xs font-mono text-gray-500 pb-3 border-b border-gray-100">
-                  <span className="flex items-center gap-1 text-emerald-800 font-bold">
-                    <Tag size={12} />
-                    Category: {selectedPost.category.toUpperCase()}
-                  </span>
-                  <span>•</span>
-                  <span>By: {selectedPost.author}</span>
-                  <span>•</span>
-                  <span>Released: {selectedPost.date}</span>
-                </div>
-
-                <div className="bg-amber-50/20 rounded-2xl p-5 border border-amber-100/40 text-xs text-gray-700 leading-relaxed space-y-4 whitespace-pre-line">
-                  <h4 className="font-bold text-amber-950 text-sm flex items-center gap-1.5">
-                    <BookOpen size={14} className="text-amber-500" />
-                    Complete Caption & Scripts:
-                  </h4>
-                  <p>{selectedPost.content}</p>
-                </div>
+              <div className="flex flex-wrap gap-3 text-xs font-bold text-gray-500 pb-3 border-b border-emerald-50">
+                <span className="flex items-center gap-1 text-emerald-700"><Tag size={12} /> {selected.category.toUpperCase()}</span>
+                <span>· By {selected.author}</span>
+                <span>· {selected.date}</span>
               </div>
-
+              <p className="text-sm font-semibold text-emerald-800/80 leading-relaxed whitespace-pre-line">{selected.content}</p>
             </div>
-
-            {/* Footer Utilities */}
-            <div className="p-6 border-t border-gray-100 bg-white flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <button
-                  id="btn-post-copy-caption"
-                  onClick={() => handleCopyCaption(selectedPost)}
-                  className="px-4 py-2.5 rounded-xl bg-amber-50 text-amber-950 text-xs font-bold hover:bg-amber-100 border border-amber-200 transition flex items-center gap-1 cursor-pointer"
-                >
-                  {isCopied ? (
-                    <>
-                      <Check size={14} className="text-emerald-700" />
-                      Caption Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} />
-                      Copy Caption for Sharing
-                    </>
-                  )}
-                </button>
-
-                {isLeader && (
-                  <button
-                    id="btn-post-delete-modal"
-                    onClick={() => {
-                      if (confirm('Are you sure you want to delete this posted post from APUMA noticeboard?')) {
-                        deletePost(selectedPost.id);
-                        setSelectedPost(null);
-                      }
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Trash2 size={14} />
-                    Delete Post
-                  </button>
-                )}
-              </div>
-
+            <div className="px-6 py-4 border-t border-emerald-50 flex items-center justify-between gap-3">
               <button
-                id="btn-post-close-action"
-                onClick={() => setSelectedPost(null)}
-                className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                onClick={() => copyCaption(selected)}
+                className="px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-extrabold border border-amber-200 hover:bg-amber-100 transition flex items-center gap-1.5 cursor-pointer"
               >
-                Done Reading
+                {copied ? <><Check size={14} className="text-emerald-600" /> Copied!</> : <><Copy size={14} /> Copy caption</>}
+              </button>
+              <button onClick={() => setSelected(null)} className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold transition cursor-pointer">
+                Done reading
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 };
